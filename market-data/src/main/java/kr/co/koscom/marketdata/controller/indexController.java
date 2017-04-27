@@ -2,6 +2,8 @@ package kr.co.koscom.marketdata.controller;
 
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -17,7 +19,7 @@ public class indexController {
 	
 	@RequestMapping("/")
     public ModelAndView getListUsersView(
-    		@RequestParam(value = "cate1", required = false, defaultValue = "001") String cate1,
+    		@RequestParam(value = "cate1", required = false, defaultValue = "002") String cate1,
     		@RequestParam(value = "sDate", required = false, defaultValue = "") String sDate,
     		@RequestParam(value = "eDate", required = false, defaultValue = "") String eDate) throws IOException, Exception {
 		urlCallController url = new urlCallController();
@@ -40,20 +42,24 @@ public class indexController {
 			// 종목의 과거값 가져오기
 			JSONObject obj = arr.getJSONObject(i);
 			String issuecode = obj.getString("stockcode");
-			String pricesLink = "https://sandbox-apigw.koscom.co.kr/v1/wavelet/prices/{issuecode}?interval=1d".replace("{issuecode}", URLEncoder.encode(issuecode, "UTF-8"));
-			if(sDate != "" && eDate != ""){
-				pricesLink += "&from="+sDate+"&to="+eDate;
+			String pricesLink = "https://sandbox-apigw.koscom.co.kr/v1/wavelet/prices/{issuecode}".replace("{issuecode}", URLEncoder.encode(issuecode, "UTF-8"));
+			if(!sDate.equals("") && !eDate.equals("")){
+				pricesLink += "?interval=1d&from="+sDate+"&to="+eDate;
 			}
 			System.out.println(pricesLink);
 			String priceInfo = url.callUrl(pricesLink);
 			JSONObject priceInfoObj = new JSONObject(priceInfo);
 			JSONArray arr2 = priceInfoObj.getJSONArray("data");
-			JSONObject tmp = arr2.getJSONObject(0);
-			arr2 = tmp.getJSONArray("points");
-			JSONObject obj2 = arr2.getJSONObject(0);
-			int sPrice = obj2.getInt("close");
-			obj2 = arr2.getJSONObject(arr2.length() - 1);
-			int ePrice = obj2.getInt("close");
+			int sPrice = 0;
+			int ePrice = 0;
+			if(arr2.length() > 0){
+				JSONObject tmp = arr2.getJSONObject(0);
+				arr2 = tmp.getJSONArray("points");
+				JSONObject obj2 = arr2.getJSONObject(0);
+				sPrice = obj2.getInt("close");
+				obj2 = arr2.getJSONObject(arr2.length() - 1);
+				ePrice = obj2.getInt("close");
+			}
 			obj.put("difPrice", sPrice - ePrice);
 		}
         model.addAttribute("marketList", marketListObj.get("data"));
