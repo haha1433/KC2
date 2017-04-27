@@ -15,7 +15,8 @@ li { list-style-type: none; }
     text-align: center;
 }
 #searchForm li { margin: 10px; text-align: center; }
-#searchForm li span {
+#searchForm li span { 
+
     width: 20%;
     display: inline-block;
     padding: 10px;
