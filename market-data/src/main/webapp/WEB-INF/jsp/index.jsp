@@ -4,6 +4,16 @@
 <html lang="ko">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script type="text/javascript" src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script type="text/javascript" src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){
+	$("#sDate, #eDate").datepicker({
+		dateFormat: 'yymmdd'
+	});
+});
+</script>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 <style type="text/css">
 * { margin: 0px; padding: 0px; }
 li { list-style-type: none; }
@@ -59,8 +69,8 @@ li { list-style-type: none; }
 		<form method="GET" action="/">
 		<li>
 			<span>검색기간</span>
-			<input type="text" name="sDate" value="${sdate}" placeholder="시작기간" />
-			<input type="text" name="eDate" value="${edate}" placeholder="종료기간" />
+			<input type="text" id="sDate" name="sDate" value="${sdate}" placeholder="시작기간" readonly />
+			<input type="text" id="eDate" name="eDate" value="${edate}" placeholder="종료기간" readonly />
 		</li>
 		<li>
 			<span>종목분류</span>

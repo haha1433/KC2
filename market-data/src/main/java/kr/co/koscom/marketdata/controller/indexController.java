@@ -19,7 +19,7 @@ public class indexController {
     public ModelAndView getListUsersView(
     		@RequestParam(value = "cate1", required = false, defaultValue = "001") String cate1,
     		@RequestParam(value = "sDate", required = false, defaultValue = "") String sDate,
-    		@RequestParam(value = "sDate", required = false, defaultValue = "") String eDate) throws IOException, Exception {
+    		@RequestParam(value = "eDate", required = false, defaultValue = "") String eDate) throws IOException, Exception {
 		urlCallController url = new urlCallController();
         ModelMap model = new ModelMap();
         
@@ -40,7 +40,11 @@ public class indexController {
 			// 종목의 과거값 가져오기
 			JSONObject obj = arr.getJSONObject(i);
 			String issuecode = obj.getString("stockcode");
-			String pricesLink = "https://sandbox-apigw.koscom.co.kr/v1/wavelet/prices/{issuecode}?from=20170401&to=20170426&interval=1d".replace("{issuecode}", URLEncoder.encode(issuecode, "UTF-8"));
+			String pricesLink = "https://sandbox-apigw.koscom.co.kr/v1/wavelet/prices/{issuecode}?interval=1d".replace("{issuecode}", URLEncoder.encode(issuecode, "UTF-8"));
+			if(sDate != "" && eDate != ""){
+				pricesLink += "&from="+sDate+"&to="+eDate;
+			}
+			System.out.println(pricesLink);
 			String priceInfo = url.callUrl(pricesLink);
 			JSONObject priceInfoObj = new JSONObject(priceInfo);
 			JSONArray arr2 = priceInfoObj.getJSONArray("data");
@@ -53,11 +57,6 @@ public class indexController {
 			obj.put("difPrice", sPrice - ePrice);
 		}
         model.addAttribute("marketList", marketListObj.get("data"));
-        
-        System.out.println(cate1);
-        System.out.println(sDate);
-        System.out.println(eDate);
-        
         model.addAttribute("cate1", cate1);
         model.addAttribute("sdate", sDate);
         model.addAttribute("edate", eDate);
