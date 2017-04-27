@@ -55,6 +55,8 @@ li { list-style-type: none; }
 #stocksList li .no { float: left; width: 20%; }
 #stocksList li .isuKor { float: left; width: 50%; }
 #stocksList li .udp { float: left; width: 25%; }
+.plus { color: red; }
+.minus { color: blue; }
 </style>
 <title>3조</title>
 </head>
@@ -97,10 +99,11 @@ li { list-style-type: none; }
 			</li>
 			<c:forEach begin="0" end="${marketList.length() -1}" var="index">
 			<c:set var="data" value="${marketList.getJSONObject(index) }"></c:set>
+			<c:set var="udp" value="${data.getString('difPrice') }"></c:set>
 			<li>
 				<span class="no">${index+1 } </span>
 				<span class="isuKor">${data.getString("stockname")}</span>
-				<span class="udp">${data.getString("difPrice")}</span>
+				<span class="udp ${(udp > 0 ? 'plus' : 'minus')}">${udp}</span>
 			</li>
 			</c:forEach>
 		</ul>
