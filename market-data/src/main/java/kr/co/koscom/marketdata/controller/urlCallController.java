@@ -6,7 +6,6 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
-import java.net.URLEncoder;
 
 public class urlCallController {
 
@@ -15,8 +14,8 @@ public class urlCallController {
     URLConnection urlConnection = null;
     String marketCode = "kospi";
     
-    public String callUrl() throws IOException{
-    	StringBuilder urlBuilder = new StringBuilder("https://sandbox-apigw.koscom.co.kr/v2/market/stocks/{marketcode}/lists".replace("{marketcode}", URLEncoder.encode(marketCode, "UTF-8")));
+    public String callUrl(String link) throws IOException{
+    	StringBuilder urlBuilder = new StringBuilder(link);
         URL url = new URL(urlBuilder.toString());
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");

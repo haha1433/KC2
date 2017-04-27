@@ -15,8 +15,7 @@ li { list-style-type: none; }
     text-align: center;
 }
 #searchForm li { margin: 10px; text-align: center; }
-#searchForm li span { 
-
+#searchForm li span {
     width: 20%;
     display: inline-block;
     padding: 10px;
@@ -25,16 +24,17 @@ li { list-style-type: none; }
     border: #847b7b;
     text-align: center;
 }
-#searchForm li input {
+#searchForm li input,
+#searchForm li select {
     width: 20%;
     display: inline-block;
     padding: 10px 5px;
     text-align: center;
+    box-sizing: content-box;
 }
 #searchForm li input.edate {
 	margin-left: 10px;
 }
-#searchForm li select { width: 50%; padding: 10px 15px;}
 #view { margin: 20px; }
 #stocksList li {
     padding: 10px 0px;
@@ -56,17 +56,23 @@ li { list-style-type: none; }
 
 <div id="searchForm">
 	<ul>
+		<form method="GET" action="/">
 		<li>
 			<span>검색기간</span>
-			<input type="text" name="sDate" value="" placeholder="시작기간" />
-			<input type="text" name="eDate" value="" placeholder="종료기간" />
+			<input type="text" name="sDate" value="${sdate}" placeholder="시작기간" />
+			<input type="text" name="eDate" value="${edate}" placeholder="종료기간" />
 		</li>
 		<li>
 			<span>종목분류</span>
 			<select name="cate1">
-			<option>aaaaaa</option>
+			<c:forEach begin="0" end="${codeList.length() - 1 }" var="index">
+			<option value="${codeList.getJSONObject(index).getString("code") }">${codeList.getJSONObject(index).getString("name") }</option>
+			</c:forEach>
 			</select>
+			
+			<input type="submit" value="검색" />
 		</li>
+		</form>
 	</ul>
 </div>
 
@@ -80,10 +86,11 @@ li { list-style-type: none; }
 				<span class="udp">등락율</span>
 			</li>
 			<c:forEach begin="0" end="${marketList.length() -1}" var="index">
+			<c:set var="data" value="${marketList.getJSONObject(index) }"></c:set>
 			<li>
 				<span class="no">${index+1 } </span>
-				<span class="isuKor">${marketList.getJSONObject(index).getString("isuKorNm")}</span>
-				<span class="udp">-</span>
+				<span class="isuKor">${data.getString("stockname")}</span>
+				<span class="udp">${data.getString("difPrice")}</span>
 			</li>
 			</c:forEach>
 		</ul>
