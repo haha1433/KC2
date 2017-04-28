@@ -17,50 +17,54 @@ import kr.co.koscom.marketdata.controller.urlCallController;
 @RestController
 public class indexController {
 	
+	String codeLinkTpl = "https://sandbox-apigw.koscom.co.kr/v1/fabotdw/sector";
+	String marketByCodeLinkTpl = "https://sandbox-apigw.koscom.co.kr/v1/fabotdw/sector/{upcode}";
+	String priceByIssuecodeTpl = "https://sandbox-apigw.koscom.co.kr/v1/wavelet/prices/{issuecode}";
+	
 	@RequestMapping("/")
     public ModelAndView getListUsersView(
-    		@RequestParam(value = "cate1", required = false, defaultValue = "002") String cate1,
-    		@RequestParam(value = "sDate", required = false, defaultValue = "") String sDate,
-    		@RequestParam(value = "eDate", required = false, defaultValue = "") String eDate) throws IOException, Exception {
+    		@RequestParam(value = "cate1", required = false, defaultValue = "022") String cate1,
+    		@RequestParam(value = "sDate", required = false, defaultValue = "20170401") String sDate,
+    		@RequestParam(value = "eDate", required = false, defaultValue = "20170427") String eDate) throws IOException, Exception {
 		urlCallController url = new urlCallController();
         ModelMap model = new ModelMap();
         
-		// ì½”ë“œ ë¦¬ìŠ¤íŠ¸
-		String allCodeLink = "https://sandbox-apigw.koscom.co.kr/v1/fabotdw/sector";
-		String codeList = url.callUrl(allCodeLink);
+		// ÄÚµå ¸®½ºÆ®
+		String codeList = url.callUrl(codeLinkTpl);
 		JSONObject codeListObj = new JSONObject(codeList);
 		codeListObj = codeListObj.getJSONObject("result");
         model.addAttribute("codeList", codeListObj.get("data"));
         
-       	// ì½”ë“œê°’ìœ¼ë¡œ ì¢…ëª© ê°€ì ¸ì˜´
-       	String codeMarketLink = "https://sandbox-apigw.koscom.co.kr/v1/fabotdw/sector/{upcode}".replace("{upcode}", URLEncoder.encode(cate1, "UTF-8"));
-       	String marketList = url.callUrl(codeMarketLink);
+       	// ÄÚµå°ªÀ¸·Î Á¾¸ñ °¡Á®¿È
+       	String marketByCodeLink = marketByCodeLinkTpl.replace("{upcode}", URLEncoder.encode(cate1, "UTF-8"));
+       	String marketList = url.callUrl(marketByCodeLink);
 		JSONObject marketListObj = new JSONObject(marketList);
 		marketListObj = marketListObj.getJSONObject("result");
-		JSONArray arr = marketListObj.getJSONArray("data");
-		for(int i=0; i<arr.length(); i++){
-			// ì¢…ëª©ì˜ ê³¼ê±°ê°’ ê°€ì ¸ì˜¤ê¸°
-			JSONObject obj = arr.getJSONObject(i);
+		JSONArray marketListArr = marketListObj.getJSONArray("data");
+		for(int i=0; i<marketListArr.length(); i++){
+			// Á¾¸ñÀÇ °ú°Å°ª °¡Á®¿À±â
+			JSONObject obj = marketListArr.getJSONObject(i);
 			String issuecode = obj.getString("stockcode");
-			String pricesLink = "https://sandbox-apigw.koscom.co.kr/v1/wavelet/prices/{issuecode}".replace("{issuecode}", URLEncoder.encode(issuecode, "UTF-8"));
-			if(!sDate.equals("") && !eDate.equals("")){
-				pricesLink += "?interval=1d&from="+sDate+"&to="+eDate;
+			String pricesByIssuecodeLink = priceByIssuecodeTpl.replace("{issuecode}", URLEncoder.encode(issuecode, "UTF-8"));
+			if(!sDate.equals("") && !eDate.equals("")){	// ³¯Â¥ ÀÔ·Â ¹Þ¾ÒÀ»¶§
+				pricesByIssuecodeLink += "?interval=1d&from="+sDate+"&to="+eDate;
 			}
-			System.out.println(pricesLink);
-			String priceInfo = url.callUrl(pricesLink);
+			System.out.println(pricesByIssuecodeLink); // µð¹ö±ë¿ë
+			String priceInfo = url.callUrl(pricesByIssuecodeLink);
 			JSONObject priceInfoObj = new JSONObject(priceInfo);
-			JSONArray arr2 = priceInfoObj.getJSONArray("data");
+			JSONArray priceInfoArr = priceInfoObj.getJSONArray("data");
+			// °ú°ÅÀÇ Ã¹¹øÂ° °ª, ¸¶Áö¸· °ª °¡Á®¿À±â
 			int sPrice = 0;
 			int ePrice = 0;
-			if(arr2.length() > 0){
-				JSONObject tmp = arr2.getJSONObject(0);
-				arr2 = tmp.getJSONArray("points");
-				JSONObject obj2 = arr2.getJSONObject(0);
-				sPrice = obj2.getInt("close");
-				obj2 = arr2.getJSONObject(arr2.length() - 1);
-				ePrice = obj2.getInt("close");
+			if(priceInfoArr.length() > 0){
+				priceInfoObj = priceInfoArr.getJSONObject(0);
+				priceInfoArr = priceInfoObj.getJSONArray("points");
+				JSONObject priceInfoStartObj = priceInfoArr.getJSONObject(0);
+				sPrice = priceInfoStartObj.getInt("close");
+				JSONObject priceInfoEndObj = priceInfoArr.getJSONObject(priceInfoArr.length() - 1);
+				ePrice = priceInfoEndObj.getInt("close");
 			}
-			obj.put("difPrice", sPrice - ePrice);
+			obj.put("difPrice", ePrice - sPrice);
 		}
         model.addAttribute("marketList", marketListObj.get("data"));
         model.addAttribute("cate1", cate1);
@@ -68,4 +72,38 @@ public class indexController {
         model.addAttribute("edate", eDate);
         return new ModelAndView("index", model);
     }
+	
+	// ±×·¡ÇÁ µ¥ÀÌÅÍ °¡Á®¿À±â
+	@RequestMapping("/data.csv")
+	public ModelAndView getChartData(
+    		@RequestParam(value = "issuecode", required = true) String issuecode,
+    		@RequestParam(value = "sDate", required = true) String sDate,
+    		@RequestParam(value = "eDate", required = true) String eDate) throws IOException, Exception {
+		urlCallController url = new urlCallController();
+        ModelMap model = new ModelMap();
+        
+        String pricesByIssuecodeLink = priceByIssuecodeTpl.replace("{issuecode}", URLEncoder.encode(issuecode, "UTF-8"));
+		if(!sDate.equals("") && !eDate.equals("")){
+			pricesByIssuecodeLink += "?interval=1d&from="+sDate+"&to="+eDate;
+		}
+		String priceInfo = url.callUrl(pricesByIssuecodeLink);
+		JSONObject priceInfoObj = new JSONObject(priceInfo);
+		JSONArray priceInfoArr = priceInfoObj.getJSONArray("data");
+		int sPrice = 0;
+		int ePrice = 0;
+		if(priceInfoArr.length() > 0){
+			priceInfoObj = priceInfoArr.getJSONObject(0);
+			priceInfoArr = priceInfoObj.getJSONArray("points");
+			JSONObject priceInfoStartObj = priceInfoArr.getJSONObject(0);
+			sPrice = priceInfoStartObj.getInt("close");
+			JSONObject priceInfoEndObj = priceInfoArr.getJSONObject(priceInfoArr.length() - 1);
+			ePrice = priceInfoEndObj.getInt("close");
+		}
+		
+		model.addAttribute("sDate", sDate);
+		model.addAttribute("eDate", eDate);
+		model.addAttribute("sPrice", sPrice);
+		model.addAttribute("ePrice", ePrice);
+        return new ModelAndView("data", model);
+	}
 }

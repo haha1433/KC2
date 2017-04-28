@@ -9,7 +9,7 @@ import java.net.URLConnection;
 
 public class urlCallController {
 
-	String apiKey = "";
+	String apiKey = "l7xx2ae2f596a0fc42fb8ec1269514eafe18"; // 발급받은 키값
 	URL url = null;
     URLConnection urlConnection = null;
     String marketCode = "kospi";
@@ -19,13 +19,13 @@ public class urlCallController {
         URL url = new URL(urlBuilder.toString());
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");
-        conn.setRequestProperty("apikey", "l7xx2ae2f596a0fc42fb8ec1269514eafe18");
-        System.out.println("Response code: " + conn.getResponseCode());
+        conn.setRequestProperty("apikey", apiKey);
+        System.out.println("Response code: " + conn.getResponseCode()); // 디버깅
         BufferedReader rd;
         if(conn.getResponseCode() >= 200 && conn.getResponseCode() <= 300) {
-            rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            rd = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
         } else {
-            rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+            rd = new BufferedReader(new InputStreamReader(conn.getErrorStream(), "UTF-8"));
         }
         StringBuilder sb = new StringBuilder();
         String line;
